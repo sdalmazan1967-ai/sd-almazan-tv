@@ -1,17 +1,16 @@
 // Proteger la página — solo abonados activos
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sbCliente.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
 
-  // Mostrar nombre de usuario
-  const { data: abonado } = await supabase
+  const { data: abonado } = await sbCliente
     .from('abonados')
     .select('nombre, estado')
     .eq('id', session.user.id)
     .single();
 
   if (!abonado || abonado.estado !== 'activo') {
-    await supabase.auth.signOut();
+    await sbCliente.auth.signOut();
     window.location.href = 'index.html';
     return;
   }
@@ -21,7 +20,7 @@
 })();
 
 async function cargarPartidos() {
-  const { data: partidos, error } = await supabase
+  const { data: partidos, error } = await sbCliente
     .from('partidos')
     .select('*')
     .eq('publicado', true)
@@ -32,11 +31,9 @@ async function cargarPartidos() {
     return;
   }
 
-  const ahora = new Date();
   const lives = partidos.filter(p => p.tipo === 'live');
   const vods = partidos.filter(p => p.tipo === 'vod');
 
-  // Partido en directo
   if (lives.length > 0) {
     const live = lives[0];
     document.getElementById('section-live').style.display = 'block';
@@ -52,7 +49,6 @@ async function cargarPartidos() {
     `;
   }
 
-  // VODs
   const vodEl = document.getElementById('vod-grid');
   if (vods.length === 0) {
     vodEl.innerHTML = '<p class="empty">Aún no hay partidos grabados disponibles.</p>';
@@ -75,14 +71,10 @@ async function cargarPartidos() {
 function buildPlayer(url) {
   if (!url) return '<div class="player-placeholder">Sin enlace de vídeo</div>';
 
-  // VEO embed
   if (url.includes('veo.co')) {
-    // Convertir URL de VEO a embed si es necesario
-    const embedUrl = url.includes('/embed/') ? url : url.replace('/matches/', '/matches/') + '?autoplay=1';
     return `<iframe src="${url}" frameborder="0" allowfullscreen allow="autoplay; fullscreen" style="width:100%; aspect-ratio:16/9; border-radius:8px;"></iframe>`;
   }
 
-  // YouTube
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
     const vid = url.includes('youtu.be') 
       ? url.split('/').pop() 
@@ -95,10 +87,9 @@ function buildPlayer(url) {
 
 let partidoAbierto = null;
 async function abrirPartido(id) {
-  const { data: p } = await supabase.from('partidos').select('*').eq('id', id).single();
+  const { data: p } = await sbCliente.from('partidos').select('*').eq('id', id).single();
   if (!p) return;
 
-  // Crear modal
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
   modal.innerHTML = `
@@ -125,6 +116,6 @@ function formatFecha(fechaStr) {
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await sbCliente.auth.signOut();
   window.location.href = 'index.html';
 }
