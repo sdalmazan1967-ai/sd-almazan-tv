@@ -1,64 +1,57 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SD Almázán TV</title>
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body class="login-page">
+# SD Almázán TV 🏟️
 
-  <div class="login-wrap">
-    <div class="login-card">
-      <div class="brand">
-        <div class="brand-icon">⚽</div>
-        <h1>SD Almázán TV</h1>
-        <p>Acceso exclusivo para abonados</p>
-      </div>
+Plataforma de streaming privada para abonados del club.
 
-      <!-- FORMULARIO LOGIN -->
-      <div id="form-login">
-        <div class="form-group">
-          <label for="email">Correo electrónico</label>
-          <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" />
-        </div>
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
-        </div>
-        <div id="login-error" class="msg-error" style="display:none"></div>
-        <button class="btn-primary" onclick="handleLogin()">Entrar →</button>
-        <p class="switch-link">¿No tienes cuenta? <a href="#" onclick="showRegister()">Solicitar acceso</a></p>
-      </div>
+## Archivos del proyecto
 
-      <!-- FORMULARIO REGISTRO -->
-      <div id="form-register" style="display:none">
-        <div class="form-group">
-          <label>Nombre completo</label>
-          <input type="text" id="reg-nombre" placeholder="Juan García" />
-        </div>
-        <div class="form-group">
-          <label>Correo electrónico</label>
-          <input type="email" id="reg-email" placeholder="tu@email.com" />
-        </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres" />
-        </div>
-        <div id="reg-error" class="msg-error" style="display:none"></div>
-        <div id="reg-success" class="msg-success" style="display:none"></div>
-        <button class="btn-primary" onclick="handleRegister()">Solicitar acceso →</button>
-        <p class="switch-link">¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Iniciar sesión</a></p>
-      </div>
+```
+sd-almazan-tv/
+├── index.html        ← Login y solicitud de acceso
+├── partidos.html     ← Vista del abonado (partidos)
+├── admin.html        ← Panel de administración
+├── vercel.json       ← Configuración de Vercel
+├── css/
+│   └── style.css
+└── js/
+    ├── config.js     ← ⚠️ Aquí están las claves de Supabase
+    ├── auth.js
+    ├── viewer.js
+    └── admin.js
+```
 
-      <div class="access-note">
-        🔒 El acceso es aprobado por el club. Si eres abonado y no tienes credenciales, usa el formulario de solicitud.
-      </div>
-    </div>
-  </div>
+## Configuración antes de subir
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
-</body>
-</html>
+1. Abre `js/config.js` y cambia `ADMIN_EMAIL` por tu email real:
+   ```js
+   const ADMIN_EMAIL = 'tu@email.com';  // ← Tu email de admin
+   ```
+
+2. Regístrate en la web con ese mismo email — luego verás el panel de admin.
+
+## Despliegue en Vercel
+
+1. Ve a [vercel.com](https://vercel.com) y crea una cuenta gratuita
+2. Pulsa **Add New Project → Import from...** y elige **Browse** para subir la carpeta
+3. O conecta con GitHub (más cómodo para actualizaciones)
+4. Vercel detecta automáticamente que es un sitio estático
+5. En **Project Settings → Domains** conecta tu dominio .es o .com
+
+## Uso diario
+
+### Como administrador:
+- Entra en `tudominio.com` con tu email de admin → te lleva al panel
+- En el panel: aprueba/deniega solicitudes, publica partidos
+
+### Para publicar un partido:
+1. Graba con VEO → obtén el enlace del partido
+2. En el panel admin → "Nuevo partido" → pega la URL de VEO
+3. Los abonados activos lo verán inmediatamente
+
+### Como abonado:
+- Entra en `tudominio.com` → solicita acceso
+- El admin lo aprueba → ya puede ver todos los partidos
+
+## Soporte VEO
+La plataforma acepta URLs de VEO en estos formatos:
+- `https://app.veo.co/matches/XXXXX/` (grabación)
+- Links de VEO Live (directo)

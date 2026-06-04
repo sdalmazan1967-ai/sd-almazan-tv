@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SD Almázán TV</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="login-page">
+
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">⚽</div>
+        <h1>SD Almázán TV</h1>
+        <p>Acceso exclusivo para abonados</p>
+      </div>
+
+      <!-- FORMULARIO LOGIN -->
+      <div id="form-login">
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="login-error" class="msg-error" style="display:none"></div>
+        <button class="btn-primary" onclick="handleLogin()">Entrar →</button>
+        <p class="switch-link">¿No tienes cuenta? <a href="#" onclick="showRegister()">Solicitar acceso</a></p>
+      </div>
+
+      <!-- FORMULARIO REGISTRO -->
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="reg-nombre" placeholder="Juan García" />
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres" />
+        </div>
+        <div id="reg-error" class="msg-error" style="display:none"></div>
+        <div id="reg-success" class="msg-success" style="display:none"></div>
+        <button class="btn-primary" onclick="handleRegister()">Solicitar acceso →</button>
+        <p class="switch-link">¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Iniciar sesión</a></p>
+      </div>
+
+      <div class="access-note">
+        🔒 El acceso es aprobado por el club. Si eres abonado y no tienes credenciales, usa el formulario de solicitud.
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
