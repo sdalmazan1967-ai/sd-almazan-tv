@@ -3,117 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SD Almázán TV — Admin</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>SD Almázán TV</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="app-page">
+<body class="login-page">
 
-  <nav class="navbar">
-    <div class="nav-left">
-      <span class="nav-logo">⚽ SD Almázán TV</span>
-      <span class="admin-badge">Panel Admin</span>
-    </div>
-    <div class="nav-right">
-      <button class="btn-outline-sm" onclick="handleLogout()">Salir</button>
-    </div>
-  </nav>
-
-  <main class="container">
-
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Abonados activos</div>
-        <div class="stat-value green" id="stat-activos">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Pendientes de aprobar</div>
-        <div class="stat-value amber" id="stat-pendientes">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Partidos publicados</div>
-        <div class="stat-value" id="stat-partidos">—</div>
-      </div>
-    </div>
-
-    <!-- SOLICITUDES PENDIENTES -->
-    <section style="margin-top:28px">
-      <div class="section-header">
-        <h2>Solicitudes pendientes</h2>
-      </div>
-      <div id="tabla-pendientes" class="table-wrap">
-        <div class="loading">Cargando...</div>
-      </div>
-    </section>
-
-    <!-- PARTIDOS -->
-    <section style="margin-top:32px">
-      <div class="section-header">
-        <h2>Partidos</h2>
-        <button class="btn-primary-sm" onclick="toggleFormPartido()">+ Nuevo partido</button>
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">⚽</div>
+        <h1>SD Almázán TV</h1>
+        <p>Acceso exclusivo para abonados</p>
       </div>
 
-      <!-- FORM NUEVO PARTIDO -->
-      <div id="form-partido" class="form-panel" style="display:none">
-        <h3>Publicar partido</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Título del partido</label>
-            <input type="text" id="p-titulo" placeholder="SD Almázán vs Rival FC" />
-          </div>
-          <div class="form-group">
-            <label>Fecha y hora</label>
-            <input type="datetime-local" id="p-fecha" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Tipo</label>
-            <select id="p-tipo">
-              <option value="live">En directo (VEO Live)</option>
-              <option value="vod">Grabación (VOD)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Competición</label>
-            <input type="text" id="p-competicion" placeholder="Liga Regional, Copa..." />
-          </div>
+      <!-- FORMULARIO LOGIN -->
+      <div id="form-login">
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" placeholder="tu@email.com" autocomplete="email" />
         </div>
         <div class="form-group">
-          <label>URL de VEO</label>
-          <input type="url" id="p-url" placeholder="https://app.veo.co/matches/..." />
-          <span class="hint">Pega aquí el enlace de VEO Live o del partido grabado</span>
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
         </div>
-        <div class="form-group checkbox-group">
-          <label><input type="checkbox" id="p-publicado" checked /> Publicar inmediatamente</label>
-        </div>
-        <div id="partido-error" class="msg-error" style="display:none"></div>
-        <div id="partido-success" class="msg-success" style="display:none"></div>
-        <div class="form-actions">
-          <button class="btn-primary-sm" onclick="guardarPartido()">Publicar partido</button>
-          <button class="btn-ghost-sm" onclick="toggleFormPartido()">Cancelar</button>
-        </div>
+        <div id="login-error" class="msg-error" style="display:none"></div>
+        <button class="btn-primary" onclick="handleLogin()">Entrar →</button>
+        <p class="switch-link">¿No tienes cuenta? <a href="#" onclick="showRegister()">Solicitar acceso</a></p>
       </div>
 
-      <div id="tabla-partidos" class="table-wrap" style="margin-top:12px">
-        <div class="loading">Cargando...</div>
+      <!-- FORMULARIO REGISTRO -->
+      <div id="form-register" style="display:none">
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" id="reg-nombre" placeholder="Juan García" />
+        </div>
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <input type="email" id="reg-email" placeholder="tu@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres" />
+        </div>
+        <div id="reg-error" class="msg-error" style="display:none"></div>
+        <div id="reg-success" class="msg-success" style="display:none"></div>
+        <button class="btn-primary" onclick="handleRegister()">Solicitar acceso →</button>
+        <p class="switch-link">¿Ya tienes cuenta? <a href="#" onclick="showLogin()">Iniciar sesión</a></p>
       </div>
-    </section>
 
-    <!-- TODOS LOS ABONADOS -->
-    <section style="margin-top:32px; margin-bottom: 40px;">
-      <div class="section-header">
-        <h2>Todos los abonados</h2>
+      <div class="access-note">
+        🔒 El acceso es aprobado por el club. Si eres abonado y no tienes credenciales, usa el formulario de solicitud.
       </div>
-      <div id="tabla-abonados" class="table-wrap">
-        <div class="loading">Cargando...</div>
-      </div>
-    </section>
-
-  </main>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/admin.js"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
 </body>
 </html>

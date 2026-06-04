@@ -1,132 +1,201 @@
-// Redirigir si ya está logueado
+// Proteger panel admin
 (async () => {
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) redirectAfterLogin(session.user.email);
+  if (!session || session.user.email !== ADMIN_EMAIL) {
+    window.location.href = 'index.html';
+    return;
+  }
+  cargarTodo();
 })();
 
-function redirectAfterLogin(email) {
-  if (email === ADMIN_EMAIL) {
-    window.location.href = 'admin.html';
-  } else {
-    window.location.href = 'partidos.html';
-  }
+async function cargarTodo() {
+  cargarStats();
+  cargarPendientes();
+  cargarPartidos();
+  cargarAbonados();
 }
 
-function showRegister() {
-  document.getElementById('form-login').style.display = 'none';
-  document.getElementById('form-register').style.display = 'block';
+async function cargarStats() {
+  const [{ count: activos }, { count: pendientes }, { count: partidos }] = await Promise.all([
+    supabase.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'activo'),
+    supabase.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+    supabase.from('partidos').select('*', { count: 'exact', head: true }).eq('publicado', true),
+  ]);
+  document.getElementById('stat-activos').textContent = activos ?? 0;
+  document.getElementById('stat-pendientes').textContent = pendientes ?? 0;
+  document.getElementById('stat-partidos').textContent = partidos ?? 0;
 }
 
-function showLogin() {
-  document.getElementById('form-register').style.display = 'none';
-  document.getElementById('form-login').style.display = 'block';
-}
+async function cargarPendientes() {
+  const { data } = await supabase
+    .from('abonados').select('*').eq('estado', 'pendiente').order('created_at', { ascending: false });
 
-async function handleLogin() {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const errEl = document.getElementById('login-error');
-  errEl.style.display = 'none';
-
-  if (!email || !password) {
-    errEl.textContent = 'Por favor rellena todos los campos.';
-    errEl.style.display = 'block';
+  const el = document.getElementById('tabla-pendientes');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<p class="empty">No hay solicitudes pendientes. 🎉</p>';
     return;
   }
 
-  const btn = document.querySelector('#form-login .btn-primary');
-  btn.textContent = 'Entrando...';
-  btn.disabled = true;
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Nombre</th><th>Email</th><th>Fecha solicitud</th><th>Acción</th></tr></thead>
+      <tbody>
+        ${data.map(a => `
+          <tr>
+            <td>${a.nombre}</td>
+            <td>${a.email}</td>
+            <td>${formatFecha(a.created_at)}</td>
+            <td>
+              <button class="btn-success-sm" onclick="aprobar('${a.id}')">✓ Aprobar</button>
+              <button class="btn-danger-sm" onclick="denegar('${a.id}')">✕ Denegar</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+async function cargarAbonados() {
+  const { data } = await supabase
+    .from('abonados').select('*')
+    .in('estado', ['activo', 'bloqueado'])
+    .order('nombre');
 
-  if (error) {
-    errEl.textContent = 'Email o contraseña incorrectos.';
-    errEl.style.display = 'block';
-    btn.textContent = 'Entrar →';
-    btn.disabled = false;
+  const el = document.getElementById('tabla-abonados');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<p class="empty">No hay abonados activos aún.</p>';
     return;
   }
 
-  // Comprobar si el abonado está activo
-  if (email !== ADMIN_EMAIL) {
-    const { data: abonado } = await supabase
-      .from('abonados')
-      .select('estado')
-      .eq('id', data.user.id)
-      .single();
-
-    if (!abonado || abonado.estado === 'pendiente') {
-      await supabase.auth.signOut();
-      errEl.textContent = 'Tu solicitud está pendiente de aprobación por el club.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Entrar →';
-      btn.disabled = false;
-      return;
-    }
-
-    if (abonado.estado === 'bloqueado') {
-      await supabase.auth.signOut();
-      errEl.textContent = 'Tu acceso ha sido desactivado. Contacta con el club.';
-      errEl.style.display = 'block';
-      btn.textContent = 'Entrar →';
-      btn.disabled = false;
-      return;
-    }
-  }
-
-  redirectAfterLogin(email);
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Acción</th></tr></thead>
+      <tbody>
+        ${data.map(a => `
+          <tr>
+            <td>${a.nombre}</td>
+            <td>${a.email}</td>
+            <td><span class="badge badge-${a.estado === 'activo' ? 'success' : 'blocked'}">${a.estado}</span></td>
+            <td>
+              ${a.estado === 'activo' 
+                ? `<button class="btn-danger-sm" onclick="bloquear('${a.id}')">Bloquear</button>` 
+                : `<button class="btn-success-sm" onclick="aprobar('${a.id}')">Reactivar</button>`}
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
 }
 
-async function handleRegister() {
-  const nombre = document.getElementById('reg-nombre').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const password = document.getElementById('reg-password').value;
-  const errEl = document.getElementById('reg-error');
-  const sucEl = document.getElementById('reg-success');
+async function cargarPartidos() {
+  const { data } = await supabase
+    .from('partidos').select('*').order('fecha', { ascending: false });
+
+  const el = document.getElementById('tabla-partidos');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<p class="empty">No hay partidos publicados aún.</p>';
+    return;
+  }
+
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>Título</th><th>Fecha</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
+      <tbody>
+        ${data.map(p => `
+          <tr>
+            <td>${p.titulo}</td>
+            <td>${formatFecha(p.fecha)}</td>
+            <td><span class="badge badge-${p.tipo === 'live' ? 'live' : 'vod'}">${p.tipo === 'live' ? '🔴 Directo' : '📹 VOD'}</span></td>
+            <td><span class="badge badge-${p.publicado ? 'success' : 'blocked'}">${p.publicado ? 'Publicado' : 'Oculto'}</span></td>
+            <td>
+              <button class="btn-ghost-sm" onclick="togglePublicado('${p.id}', ${p.publicado})">${p.publicado ? 'Ocultar' : 'Publicar'}</button>
+              <button class="btn-danger-sm" onclick="eliminarPartido('${p.id}')">Eliminar</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function aprobar(id) {
+  await supabase.from('abonados').update({ estado: 'activo' }).eq('id', id);
+  cargarTodo();
+}
+
+async function denegar(id) {
+  if (!confirm('¿Seguro que quieres rechazar esta solicitud?')) return;
+  await supabase.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
+  cargarTodo();
+}
+
+async function bloquear(id) {
+  if (!confirm('¿Seguro que quieres bloquear a este abonado?')) return;
+  await supabase.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
+  cargarTodo();
+}
+
+async function togglePublicado(id, actual) {
+  await supabase.from('partidos').update({ publicado: !actual }).eq('id', id);
+  cargarPartidos();
+}
+
+async function eliminarPartido(id) {
+  if (!confirm('¿Eliminar este partido? Esta acción no se puede deshacer.')) return;
+  await supabase.from('partidos').delete().eq('id', id);
+  cargarTodo();
+}
+
+function toggleFormPartido() {
+  const f = document.getElementById('form-partido');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function guardarPartido() {
+  const titulo = document.getElementById('p-titulo').value.trim();
+  const fecha = document.getElementById('p-fecha').value;
+  const tipo = document.getElementById('p-tipo').value;
+  const competicion = document.getElementById('p-competicion').value.trim();
+  const url = document.getElementById('p-url').value.trim();
+  const publicado = document.getElementById('p-publicado').checked;
+
+  const errEl = document.getElementById('partido-error');
+  const sucEl = document.getElementById('partido-success');
   errEl.style.display = 'none';
   sucEl.style.display = 'none';
 
-  if (!nombre || !email || !password) {
-    errEl.textContent = 'Por favor rellena todos los campos.';
+  if (!titulo || !url) {
+    errEl.textContent = 'El título y la URL de VEO son obligatorios.';
     errEl.style.display = 'block';
     return;
   }
 
-  if (password.length < 8) {
-    errEl.textContent = 'La contraseña debe tener al menos 8 caracteres.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  const btn = document.querySelector('#form-register .btn-primary');
-  btn.textContent = 'Enviando solicitud...';
-  btn.disabled = true;
-
-  const { data, error } = await supabase.auth.signUp({ email, password });
-
-  if (error) {
-    errEl.textContent = error.message.includes('already') 
-      ? 'Este email ya tiene una cuenta registrada.' 
-      : 'Error al registrarse. Inténtalo de nuevo.';
-    errEl.style.display = 'block';
-    btn.textContent = 'Solicitar acceso →';
-    btn.disabled = false;
-    return;
-  }
-
-  // Crear registro en tabla abonados con estado "pendiente"
-  await supabase.from('abonados').insert({
-    id: data.user.id,
-    nombre,
-    email,
-    estado: 'pendiente'
+  const { error } = await supabase.from('partidos').insert({
+    titulo, fecha: fecha || null, tipo, competicion: competicion || null, veo_url: url, publicado
   });
 
-  sucEl.textContent = '✅ Solicitud enviada. El club revisará tu acceso y te notificará.';
+  if (error) {
+    errEl.textContent = 'Error al guardar. Inténtalo de nuevo.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  sucEl.textContent = '✅ Partido publicado correctamente.';
   sucEl.style.display = 'block';
-  btn.textContent = 'Solicitar acceso →';
-  btn.disabled = false;
+
+  // Limpiar form
+  ['p-titulo','p-fecha','p-competicion','p-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('p-tipo').value = 'live';
+
+  setTimeout(() => {
+    toggleFormPartido();
+    cargarTodo();
+    sucEl.style.display = 'none';
+  }, 1500);
+}
+
+function formatFecha(fechaStr) {
+  if (!fechaStr) return '—';
+  return new Date(fechaStr).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 async function handleLogout() {
