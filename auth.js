@@ -1,6 +1,6 @@
 // Redirigir si ya está logueado
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sbCliente.auth.getSession();
   if (session) redirectAfterLogin(session.user.email);
 })();
 
@@ -38,7 +38,7 @@ async function handleLogin() {
   btn.textContent = 'Entrando...';
   btn.disabled = true;
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await sbCliente.auth.signInWithPassword({ email, password });
 
   if (error) {
     errEl.textContent = 'Email o contraseña incorrectos.';
@@ -48,16 +48,15 @@ async function handleLogin() {
     return;
   }
 
-  // Comprobar si el abonado está activo
   if (email !== ADMIN_EMAIL) {
-    const { data: abonado } = await supabase
+    const { data: abonado } = await sbCliente
       .from('abonados')
       .select('estado')
       .eq('id', data.user.id)
       .single();
 
     if (!abonado || abonado.estado === 'pendiente') {
-      await supabase.auth.signOut();
+      await sbCliente.auth.signOut();
       errEl.textContent = 'Tu solicitud está pendiente de aprobación por el club.';
       errEl.style.display = 'block';
       btn.textContent = 'Entrar →';
@@ -66,7 +65,7 @@ async function handleLogin() {
     }
 
     if (abonado.estado === 'bloqueado') {
-      await supabase.auth.signOut();
+      await sbCliente.auth.signOut();
       errEl.textContent = 'Tu acceso ha sido desactivado. Contacta con el club.';
       errEl.style.display = 'block';
       btn.textContent = 'Entrar →';
@@ -103,7 +102,7 @@ async function handleRegister() {
   btn.textContent = 'Enviando solicitud...';
   btn.disabled = true;
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await sbCliente.auth.signUp({ email, password });
 
   if (error) {
     errEl.textContent = error.message.includes('already') 
@@ -115,8 +114,7 @@ async function handleRegister() {
     return;
   }
 
-  // Crear registro en tabla abonados con estado "pendiente"
-  await supabase.from('abonados').insert({
+  await sbCliente.from('abonados').insert({
     id: data.user.id,
     nombre,
     email,
@@ -130,6 +128,6 @@ async function handleRegister() {
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await sbCliente.auth.signOut();
   window.location.href = 'index.html';
 }
