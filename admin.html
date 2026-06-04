@@ -19,8 +19,6 @@
   </nav>
 
   <main class="container">
-
-    <!-- STATS -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Abonados activos</div>
@@ -36,7 +34,6 @@
       </div>
     </div>
 
-    <!-- SOLICITUDES PENDIENTES -->
     <section style="margin-top:28px">
       <div class="section-header">
         <h2>Solicitudes pendientes</h2>
@@ -46,14 +43,12 @@
       </div>
     </section>
 
-    <!-- PARTIDOS -->
     <section style="margin-top:32px">
       <div class="section-header">
         <h2>Partidos</h2>
         <button class="btn-primary-sm" onclick="toggleFormPartido()">+ Nuevo partido</button>
       </div>
 
-      <!-- FORM NUEVO PARTIDO -->
       <div id="form-partido" class="form-panel" style="display:none">
         <h3>Publicar partido</h3>
         <div class="form-row">
@@ -100,7 +95,6 @@
       </div>
     </section>
 
-    <!-- TODOS LOS ABONADOS -->
     <section style="margin-top:32px; margin-bottom: 40px;">
       <div class="section-header">
         <h2>Todos los abonados</h2>
@@ -109,11 +103,10 @@
         <div class="loading">Cargando...</div>
       </div>
     </section>
-
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="admin.js"></script>
+  <script src="config.js?v=3"></script>
+  <script src="admin.js?v=3"></script>
 </body>
 </html>
