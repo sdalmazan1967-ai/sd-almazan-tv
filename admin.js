@@ -1,6 +1,6 @@
 // Proteger panel admin
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sbCliente.auth.getSession();
   if (!session || session.user.email !== ADMIN_EMAIL) {
     window.location.href = 'index.html';
     return;
@@ -17,9 +17,9 @@ async function cargarTodo() {
 
 async function cargarStats() {
   const [{ count: activos }, { count: pendientes }, { count: partidos }] = await Promise.all([
-    supabase.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'activo'),
-    supabase.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente'),
-    supabase.from('partidos').select('*', { count: 'exact', head: true }).eq('publicado', true),
+    sbCliente.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'activo'),
+    sbCliente.from('abonados').select('*', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+    sbCliente.from('partidos').select('*', { count: 'exact', head: true }).eq('publicado', true),
   ]);
   document.getElementById('stat-activos').textContent = activos ?? 0;
   document.getElementById('stat-pendientes').textContent = pendientes ?? 0;
@@ -27,7 +27,7 @@ async function cargarStats() {
 }
 
 async function cargarPendientes() {
-  const { data } = await supabase
+  const { data } = await sbCliente
     .from('abonados').select('*').eq('estado', 'pendiente').order('created_at', { ascending: false });
 
   const el = document.getElementById('tabla-pendientes');
@@ -56,7 +56,7 @@ async function cargarPendientes() {
 }
 
 async function cargarAbonados() {
-  const { data } = await supabase
+  const { data } = await sbCliente
     .from('abonados').select('*')
     .in('estado', ['activo', 'bloqueado'])
     .order('nombre');
@@ -88,7 +88,7 @@ async function cargarAbonados() {
 }
 
 async function cargarPartidos() {
-  const { data } = await supabase
+  const { data } = await sbCliente
     .from('partidos').select('*').order('fecha', { ascending: false });
 
   const el = document.getElementById('tabla-partidos');
@@ -118,30 +118,30 @@ async function cargarPartidos() {
 }
 
 async function aprobar(id) {
-  await supabase.from('abonados').update({ estado: 'activo' }).eq('id', id);
+  await sbCliente.from('abonados').update({ estado: 'activo' }).eq('id', id);
   cargarTodo();
 }
 
 async function denegar(id) {
   if (!confirm('¿Seguro que quieres rechazar esta solicitud?')) return;
-  await supabase.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
+  await sbCliente.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
   cargarTodo();
 }
 
 async function bloquear(id) {
   if (!confirm('¿Seguro que quieres bloquear a este abonado?')) return;
-  await supabase.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
+  await sbCliente.from('abonados').update({ estado: 'bloqueado' }).eq('id', id);
   cargarTodo();
 }
 
 async function togglePublicado(id, actual) {
-  await supabase.from('partidos').update({ publicado: !actual }).eq('id', id);
+  await sbCliente.from('partidos').update({ publicado: !actual }).eq('id', id);
   cargarPartidos();
 }
 
 async function eliminarPartido(id) {
   if (!confirm('¿Eliminar este partido? Esta acción no se puede deshacer.')) return;
-  await supabase.from('partidos').delete().eq('id', id);
+  await sbCliente.from('partidos').delete().eq('id', id);
   cargarTodo();
 }
 
@@ -169,7 +169,7 @@ async function guardarPartido() {
     return;
   }
 
-  const { error } = await supabase.from('partidos').insert({
+  const { error } = await sbCliente.from('partidos').insert({
     titulo, fecha: fecha || null, tipo, competicion: competicion || null, veo_url: url, publicado
   });
 
@@ -182,7 +182,6 @@ async function guardarPartido() {
   sucEl.textContent = '✅ Partido publicado correctamente.';
   sucEl.style.display = 'block';
 
-  // Limpiar form
   ['p-titulo','p-fecha','p-competicion','p-url'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('p-tipo').value = 'live';
 
@@ -199,6 +198,6 @@ function formatFecha(fechaStr) {
 }
 
 async function handleLogout() {
-  await supabase.auth.signOut();
+  await sbCliente.auth.signOut();
   window.location.href = 'index.html';
 }
